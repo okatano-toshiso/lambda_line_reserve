@@ -8,6 +8,8 @@ from models import Base, LineReserve, LineUser
 from database_initializer import DatabaseInitializer
 # env_variable_loader.pyからEnvVariableLoaderをインポート
 from env_variable_loader import EnvVariableLoader
+# request_parser.pyからRequestParserをインポート
+from request_parser import RequestParser
 
 def handler(event, context):
     # EnvVariableLoaderクラスを使って環境変数を取得
@@ -34,11 +36,11 @@ def handler(event, context):
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    # request datas to json
+    # RequestParserクラスを使ってリクエストボディをパース
+    request_parser = RequestParser()
     try:
-        request_body = json.loads(event['body'])
-    except Exception as e:
-        print(f"無効なリクエストボディ: {e}")
+        request_body = request_parser.parse_request_body(event)
+    except ValueError:
         return {
             'statusCode': 400,
             'body': json.dumps('Invalid request body')

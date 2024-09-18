@@ -47,10 +47,16 @@ def handler(event, context):
                     'body': json.dumps('Invalid Token')
                 }
             line_reserve_data.pop('token', None)
-            date_fields = ['reservation_date', 'check_in', 'check_out', 'created_at', 'updated_at']
+
+            date_fields = ['reservation_date', 'check_in', 'check_out']
             for field in date_fields:
                 if field in line_reserve_data and line_reserve_data[field]:
                     line_reserve_data[field] = datetime.strptime(line_reserve_data[field], '%Y-%m-%d')
+
+            datetime_fields = ['created_at', 'updated_at']
+            for field in datetime_fields:
+                if field in line_reserve_data and line_reserve_data[field]:
+                    line_reserve_data[field] = datetime.strptime(line_reserve_data[field], '%Y-%m-%d %H:%M:%S')
             line_reserve = LineReserve(**line_reserve_data)
             session.add(line_reserve)
 
@@ -61,10 +67,11 @@ def handler(event, context):
                     'body': json.dumps('Invalid Token')
                 }
             line_user_data.pop('token', None)
-            date_fields = ['created_at', 'updated_at']
+
+            datetime_fields = ['created_at', 'updated_at']
             for field in date_fields:
                 if field in line_user_data and line_user_data[field]:
-                    line_user_data[field] = datetime.strptime(line_user_data[field], '%Y-%m-%d')
+                    line_user_data[field] = datetime.strptime(line_user_data[field], '%Y-%m-%d %H:%M:%S')
             existing_user = session.query(LineUser).filter_by(
                 line_id=line_user_data['line_id'],
                 name=line_user_data['name'],

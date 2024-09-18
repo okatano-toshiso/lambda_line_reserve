@@ -2,41 +2,30 @@ import json
 from datetime import datetime
 from sqlalchemy.orm import sessionmaker
 
-# models.pyからBase, LineReserve, LineUserをインポート
-from models import Base, LineReserve, LineUser
-# database_initializer.pyからDatabaseInitializerをインポート
-from database_initializer import DatabaseInitializer
-# env_variable_loader.pyからEnvVariableLoaderをインポート
-from env_variable_loader import EnvVariableLoader
-# request_parser.pyからRequestParserをインポート
-from request_parser import RequestParser
+from utils.models import Base, LineReserve, LineUser
+from utils.env_variable_loader import EnvVariableLoader
+from utils.database_initializer import DatabaseInitializer
+from utils.request_parser import RequestParser
 
 def handler(event, context):
-    # EnvVariableLoaderクラスを使って環境変数を取得
     config_loader = EnvVariableLoader()
     db_config = config_loader.get_database_config()
     access_token = config_loader.get_access_token()
 
-    # DatabaseInitializerクラスを使ってデータベースを初期化
     db_initializer = DatabaseInitializer(
-        db_user=db_config['db_user'], 
-        db_password=db_config['db_password'], 
-        db_host=db_config['db_host'], 
+        db_user=db_config['db_user'],
+        db_password=db_config['db_password'],
+        db_host=db_config['db_host'],
         db_name=db_config['db_name']
     )
-    
-    # エラーハンドリングをDatabaseInitializer内で行う
-    db_initializer.create_database_if_not_exists()
 
-    # テーブルを作成
+    db_initializer.create_database_if_not_exists()
     db_initializer.create_tables(Base)
 
-    # データベースに接続するエンジンを取得
     engine = db_initializer.get_engine_with_db()
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    # RequestParserクラスを使ってリクエストボディをパース
     request_parser = RequestParser()
     try:
         request_body = request_parser.parse_request_body(event)
@@ -46,11 +35,8 @@ def handler(event, context):
             'body': json.dumps('Invalid request body')
         }
 
-    # get request datas
     line_reserves_data = request_body.get('line_reserves', [])
     line_users_data = request_body.get('line_users', [])
-
-    # put result
     response_message = ""
 
     try:
@@ -87,11 +73,11 @@ def handler(event, context):
             if not existing_user:
                 line_user = LineUser(**line_user_data)
                 session.add(line_user)
+
         session.commit()
         response_message = "Reservations processed successfully"
-
     except Exception as err:
-        print(f"error message: {err}")
+        print(f"Error during reservation processing: {err}")
         session.rollback()
         return {
             'statusCode': 500,

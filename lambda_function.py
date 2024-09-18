@@ -11,7 +11,7 @@ def lambda_handler(event, context):
     if method == 'POST':
         return reserve_regist.handler(event, context)
     elif method == 'GET':
-        if query_params.get('type') == 'max_id':
+        if query_params.get('type') == 'latest_id':
             return get_max_reservation_id()
         else:
             return get_reservation()

@@ -29,12 +29,12 @@ def get_max_reservation_id():
         Session = sessionmaker(bind=engine)
         session = Session()
 
-        max_id = session.query(func.max(LineReserve.reservation_id)).scalar()
+        latest_id = session.query(func.max(LineReserve.reservation_id)).scalar()
         session.close()
 
         return {
             'statusCode': 200,
-            'body': json.dumps({'latest_reserve_id': max_id})
+            'body': json.dumps({'latest_reserve_id': latest_id})
         }
     except Exception as e:
         print(f"Error fetching latest_reserve_id: {e}")

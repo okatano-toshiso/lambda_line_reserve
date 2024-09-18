@@ -34,10 +34,10 @@ def get_max_reservation_id():
 
         return {
             'statusCode': 200,
-            'body': json.dumps({'max_reservation_id': max_id})
+            'body': json.dumps({'latest_reserve_id': max_id})
         }
     except Exception as e:
-        print(f"Error fetching max reservation_id: {e}")
+        print(f"Error fetching latest_reserve_id: {e}")
         return {
             'statusCode': 500,
             'body': json.dumps('Internal server error')

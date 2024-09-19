@@ -6,6 +6,7 @@ from utils.models import Base, LineReserve, LineUser
 from utils.env_variable_loader import EnvVariableLoader
 from utils.database_initializer import DatabaseInitializer
 from utils.request_parser import RequestParser
+from utils.validator import Validator
 
 def handler(event, context):
     config_loader = EnvVariableLoader()
@@ -27,13 +28,20 @@ def handler(event, context):
     session = Session()
 
     request_parser = RequestParser()
+
+    request_body = request_parser.parse_request_body(event)
+
     try:
-        request_body = request_parser.parse_request_body(event)
-    except ValueError:
+        for line_reserve_data in request_body.get('line_reserves', []):
+            Validator.validate_data(line_reserve_data, 'line_reserves')
+        for line_user_data in request_body.get('line_users', []):
+            Validator.validate_data(line_user_data, 'line_users')
+    except ValueError as e:
         return {
             'statusCode': 400,
-            'body': json.dumps('Invalid request body')
+            'body': json.dumps(f'Validation error: {str(e)}')
         }
+
 
     line_reserves_data = request_body.get('line_reserves', [])
     line_users_data = request_body.get('line_users', [])
@@ -97,3 +105,4 @@ def handler(event, context):
         'statusCode': 200,
         'body': json.dumps({'message': response_message}, ensure_ascii=False)
     }
+

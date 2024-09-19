@@ -31,6 +31,7 @@ def handler(event, context):
 
     request_body = request_parser.parse_request_body(event)
 
+    print(request_body)
     try:
         for line_reserve_data in request_body.get('line_reserves', []):
             Validator.validate_data(line_reserve_data, 'line_reserves')

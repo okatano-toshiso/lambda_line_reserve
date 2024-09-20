@@ -1,6 +1,5 @@
-from reserve_confirm import get_max_reservation_id, get_reservation
+from reserve_confirm import get_latest_reservation_id, get_reservation
 import reserve_regist
-import reserve_confirm
 import reserve_update
 import reserve_cancel
 
@@ -12,7 +11,7 @@ def lambda_handler(event, context):
         return reserve_regist.handler(event, context)
     elif method == 'GET':
         if query_params.get('type') == 'latest_id':
-            return get_max_reservation_id()
+            return get_latest_reservation_id()
         else:
             return get_reservation()
     elif method == 'PUT':

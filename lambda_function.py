@@ -13,7 +13,7 @@ def lambda_handler(event, context):
         if query_params.get('type') == 'latest_id':
             return get_latest_reservation_id()
         else:
-            return get_reservation()
+            return get_reservation(event)
     elif method == 'PUT':
         return reserve_update.handler(event, context)
     elif method == 'DELETE':

@@ -18,11 +18,40 @@ db_initializer = DatabaseInitializer(
     db_name=db_config['db_name']
 )
 
-def get_reservation():
-    return {
-        'statusCode': 200,
-        'body': '予約を確認してください。'
-    }
+def get_reservation(event):
+
+    engine = db_initializer.get_engine_with_db()
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
+    query_params = event.get('queryStringParameters', {})
+    name = query_params.get('name')
+    phone_number = query_params.get('phone_number')
+    line_id = query_params.get('line_id')
+
+    try:
+        reserves = session.query(LineReserve).filter_by(name=name, phone_number=phone_number, line_id=line_id).all()
+
+        if not reserves:
+            return None
+        
+        result = [reserve.as_dict() for reserve in reserves]
+
+        return {
+            'statusCode': 200,
+            'body': json.dumps(result, ensure_ascii=False)
+        }
+
+    except Exception as e:
+        print(f"Error fetching reservations: {e}")
+        return {
+            'statusCode': 500,
+            'body': json.dumps({'message': 'Internal server error'})
+        }
+
+    finally:
+        session.close()
+
 
 def get_latest_reservation_id():
     try:

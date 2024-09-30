@@ -7,21 +7,12 @@ from utils.env_variable_loader import EnvVariableLoader
 from utils.database_initializer import DatabaseInitializer
 from utils.request_parser import RequestParser
 from utils.validator import Validator
+from utils.auth import get_access_token_from_header
 
-def handler(event, context):
+
+def handler(event, context, db_initializer):
     config_loader = EnvVariableLoader()
-    db_config = config_loader.get_database_config()
     access_token = config_loader.get_access_token()
-
-    db_initializer = DatabaseInitializer(
-        db_user=db_config['db_user'],
-        db_password=db_config['db_password'],
-        db_host=db_config['db_host'],
-        db_name=db_config['db_name']
-    )
-
-    db_initializer.create_database_if_not_exists()
-    db_initializer.create_tables(Base)
 
     engine = db_initializer.get_engine_with_db()
     Session = sessionmaker(bind=engine)
@@ -31,7 +22,6 @@ def handler(event, context):
 
     request_body = request_parser.parse_request_body(event)
 
-    print(request_body)
     try:
         for line_reserve_data in request_body.get('line_reserves', []):
             Validator.validate_data(line_reserve_data, 'line_reserves')
@@ -43,6 +33,17 @@ def handler(event, context):
             'body': json.dumps(f'Validation error: {str(e)}')
         }
 
+    headers = event.get('headers', {})
+    error_response, auth_access_token = get_access_token_from_header(headers)
+
+    if error_response:
+        return error_response
+
+    if auth_access_token != access_token:
+        return {
+            'statusCode': 401,
+            'body': json.dumps('Invalid Token')
+        }
 
     line_reserves_data = request_body.get('line_reserves', [])
     line_users_data = request_body.get('line_users', [])
@@ -50,13 +51,6 @@ def handler(event, context):
 
     try:
         for line_reserve_data in line_reserves_data:
-            if line_reserve_data.get('token') != access_token:
-                return {
-                    'statusCode': 401,
-                    'body': json.dumps('Invalid Token')
-                }
-            line_reserve_data.pop('token', None)
-
             date_fields = ['reservation_date', 'check_in', 'check_out']
             for field in date_fields:
                 if field in line_reserve_data and line_reserve_data[field]:
@@ -70,12 +64,6 @@ def handler(event, context):
             session.add(line_reserve)
 
         for line_user_data in line_users_data:
-            if line_user_data.get('token') != access_token:
-                return {
-                    'statusCode': 401,
-                    'body': json.dumps('Invalid Token')
-                }
-            line_user_data.pop('token', None)
 
             datetime_fields = ['created_at', 'updated_at']
             for field in date_fields:

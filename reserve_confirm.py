@@ -5,21 +5,12 @@ from sqlalchemy.exc import ProgrammingError
 from utils.models import LineReserve
 from utils.database_initializer import DatabaseInitializer
 from utils.env_variable_loader import EnvVariableLoader
+from utils.auth import get_access_token_from_header
 
-# Load environment variables
-config_loader = EnvVariableLoader()
-db_config = config_loader.get_database_config()
+def get_reservation(event, db_initializer):
 
-# Initialize the DatabaseInitializer using environment variables
-db_initializer = DatabaseInitializer(
-    db_user=db_config['db_user'],
-    db_password=db_config['db_password'],
-    db_host=db_config['db_host'],
-    db_name=db_config['db_name']
-)
-
-def get_reservation(event):
-
+    config_loader = EnvVariableLoader()
+    access_token = config_loader.get_access_token()
     engine = db_initializer.get_engine_with_db()
     Session = sessionmaker(bind=engine)
     session = Session()
@@ -29,12 +20,27 @@ def get_reservation(event):
     phone_number = query_params.get('phone_number')
     line_id = query_params.get('line_id')
 
+
+    headers = event.get('headers', {})
+    error_response, auth_access_token = get_access_token_from_header(headers)
+
+    if error_response:
+        return error_response
+
+    if auth_access_token != access_token:
+        return {
+            'statusCode': 401,
+            'body': json.dumps('Invalid Token')
+        }
+
     try:
         reserves = session.query(LineReserve).filter_by(name=name, phone_number=phone_number, line_id=line_id).all()
 
+
+
         if not reserves:
             return None
-        
+
         result = [reserve.as_dict() for reserve in reserves]
 
         return {
@@ -53,7 +59,7 @@ def get_reservation(event):
         session.close()
 
 
-def get_latest_reservation_id():
+def get_latest_reservation_id(db_initializer):
     try:
 
         engine = db_initializer.get_engine_with_db()

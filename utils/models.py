@@ -26,10 +26,10 @@ class LineReserve(Base):
 
     def as_dict(self):
         return {
-            c.key: (getattr(self, c.key).strftime('%Y-%m-%d %H:%M:%S') 
+            c.key: (getattr(self, c.key).strftime('%Y-%m-%d %H:%M:%S')
                     if isinstance(getattr(self, c.key), datetime)
                     else (getattr(self, c.key).strftime('%Y-%m-%d') if isinstance(getattr(self, c.key), date)
-                          else getattr(self, c.key))) 
+                    else getattr(self, c.key)))
             for c in class_mapper(self.__class__).columns
         }
 

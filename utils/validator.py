@@ -13,7 +13,8 @@ class Validator:
     def validate_integer(data, *field_names, max_value=None):
         for field_name in field_names:
             value = data.get(field_name)
-            if value is not None:  # 値が存在する場合のみチェック
+            # フィールドが存在し、かつ値がNoneでない場合のみバリデーションを行う
+            if value is not None and field_name in data:
                 if not isinstance(value, int):
                     raise ValueError(f"Field '{field_name}' must be an integer")
                 if max_value is not None and value > max_value:
@@ -23,15 +24,19 @@ class Validator:
     def validate_date_format(data, *field_names, date_format='%Y-%m-%d'):
         for field_name in field_names:
             date_str = data.get(field_name)
-            try:
-                datetime.strptime(date_str, date_format)
-            except ValueError:
-                raise ValueError(f"Invalid date format for '{field_name}', should be {date_format}")
+            # フィールドが存在する場合のみバリデーションを行う
+            if date_str and field_name in data:
+                try:
+                    datetime.strptime(date_str, date_format)
+                except ValueError:
+                    raise ValueError(f"Invalid date format for '{field_name}', should be {date_format}")
 
     @staticmethod
     def validate_datetime_format(data, *field_names, datetime_format='%Y-%m-%d %H:%M:%S'):
         for field_name in field_names:
             datetime_str = data.get(field_name)
+            if field_name not in data:  # フィールドが存在しない場合はスキップ
+                continue
             if isinstance(datetime_str, datetime):
                 datetime_str = datetime_str.strftime(datetime_format)
             elif datetime_str:
@@ -44,6 +49,8 @@ class Validator:
     @staticmethod
     def validate_string(data, *field_names, max_length=None):
         for field_name in field_names:
+            if field_name not in data:  # フィールドが存在しない場合はスキップ
+                continue
             value = data.get(field_name)
             if not isinstance(value, str):
                 raise ValueError(f"Field '{field_name}' must be a string")
@@ -54,6 +61,8 @@ class Validator:
     def validate_phone_number(data, *field_names, min_length=10, max_length=11):
         phone_number_pattern = re.compile(r'^\d+$')
         for field_name in field_names:
+            if field_name not in data:  # フィールドが存在しない場合はスキップ
+                continue
             phone_number = data.get(field_name)
             if not phone_number_pattern.match(phone_number):
                 raise ValueError(f"Field '{field_name}' must contain only digits")
@@ -64,9 +73,11 @@ class Validator:
     def validate_katakana(data, *field_names):
         katakana_pattern = re.compile(r'^[\u30A0-\u30FF\u30FC]+$')
         for field_name in field_names:
+            if field_name not in data:  # フィールドが存在しない場合はスキップ
+                continue
             value = data.get(field_name)
             print(f"Validating field '{field_name}': {value}")
-            if not value:
+            if not value:  # フィールドが存在する場合のみチェック
                 raise ValueError(f"Field '{field_name}' must not be empty or None")
             if not isinstance(value, str):
                 raise ValueError(f"Field '{field_name}' must be a string")
@@ -75,10 +86,15 @@ class Validator:
 
     @staticmethod
     def validate_data(data, data_type):
+        # データタイプに基づいたバリデーションルールを取得
         rules = validation_rules.get(data_type)
         if not rules:
             raise ValueError(f"No validation rules defined for data type '{data_type}'")
+
+        # 必須フィールドのバリデーション
         Validator.validate_required_fields(data, *rules['required_fields'])
+
+        # 各バリデーション関数を呼び出す前に、データにフィールドが存在するか確認
         for field_name in rules['integer_fields']['fields']:
             max_value = rules['integer_fields']['max_values'].get(field_name)
             Validator.validate_integer(data, field_name, max_value=max_value)

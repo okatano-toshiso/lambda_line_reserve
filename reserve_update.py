@@ -81,18 +81,28 @@ def handler(event, context, db_initializer):
             for field in datetime_fields:
                 if field in line_user_data and line_user_data[field]:
                     line_user_data[field] = datetime.strptime(line_user_data[field], '%Y-%m-%d %H:%M:%S')
+            if 'new_name' in line_user_data:
+                line_user_data['name'] = line_user_data['new_name']
+            if 'new_phone_number' in line_user_data:
+                line_user_data['phone_number'] = line_user_data['new_phone_number']
             existing_user = session.query(LineUser).filter_by(
                 line_id=line_user_data['line_id'],
                 name=line_user_data['name'],
                 phone_number=line_user_data['phone_number']
             ).first()
-            if existing_user:
+            if existing_user is not None:
+                print('existing_user',existing_user)
                 if 'new_name' in line_user_data:
                     existing_user.name = line_user_data['new_name']
                 if 'new_phone_number' in line_user_data:
                     existing_user.phone_number = line_user_data['new_phone_number']
                 session.merge(existing_user)
             else:
+                if isinstance(line_user_data, dict) and 'new_name' in line_user_data:
+                    del line_user_data['new_name']
+                if isinstance(line_user_data, dict) and 'new_phone_number' in line_user_data:
+                    del line_user_data['new_phone_number']
+
                 new_user = LineUser(**line_user_data)
                 session.add(new_user)
 

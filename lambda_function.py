@@ -21,13 +21,13 @@ def lambda_handler(event, context):
 
     try:
         db_initializer.create_database_if_not_exists()
-        print("Database created or already exists.")
+        # print("Database created or already exists.")
     except Exception as e:
         print(f"Failed to create database: {e}")
-    
+
     try:
         db_initializer.create_tables(Base)
-        print("Tables created or already exist.")
+        # print("Tables created or already exist.")
     except Exception as e:
         print(f"Failed to create tables: {e}")
 

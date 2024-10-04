@@ -19,6 +19,7 @@ def get_reservation(event, db_initializer):
     name = query_params.get('name')
     phone_number = query_params.get('phone_number')
     line_id = query_params.get('line_id')
+    reservation_id = query_params.get('reservation_id')
 
 
     headers = event.get('headers', {})
@@ -34,8 +35,10 @@ def get_reservation(event, db_initializer):
         }
 
     try:
-        reserves = session.query(LineReserve).filter_by(name=name, phone_number=phone_number, line_id=line_id).all()
-
+        if reservation_id:
+            reserves = session.query(LineReserve).filter_by(name=name, phone_number=phone_number, line_id=line_id, reservation_id=reservation_id).all()
+        else:
+            reserves = session.query(LineReserve).filter_by(name=name, phone_number=phone_number, line_id=line_id).all()
 
 
         if not reserves:

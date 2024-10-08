@@ -5,8 +5,9 @@ from datetime import datetime, date
 
 Base = declarative_base()
 
+
 class LineReserve(Base):
-    __tablename__ = 'line_reserves'
+    __tablename__ = "line_reserves"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     reservation_id = Column(Integer)
@@ -23,18 +24,23 @@ class LineReserve(Base):
     created_at = Column(DateTime)
     updated_at = Column(DateTime)
 
-
     def as_dict(self):
         return {
-            c.key: (getattr(self, c.key).strftime('%Y-%m-%d %H:%M:%S')
-                    if isinstance(getattr(self, c.key), datetime)
-                    else (getattr(self, c.key).strftime('%Y-%m-%d') if isinstance(getattr(self, c.key), date)
-                    else getattr(self, c.key)))
+            c.key: (
+                getattr(self, c.key).strftime("%Y-%m-%d %H:%M:%S")
+                if isinstance(getattr(self, c.key), datetime)
+                else (
+                    getattr(self, c.key).strftime("%Y-%m-%d")
+                    if isinstance(getattr(self, c.key), date)
+                    else getattr(self, c.key)
+                )
+            )
             for c in class_mapper(self.__class__).columns
         }
 
+
 class LineUser(Base):
-    __tablename__ = 'line_users'
+    __tablename__ = "line_users"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     line_id = Column(String(255))

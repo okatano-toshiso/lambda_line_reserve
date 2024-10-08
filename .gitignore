@@ -1,0 +1,9 @@
+# 仮想環境ディレクトリを無視
+venv/
+env/
+menv/
+.venv/
+.menv/
+.python-version
+.vscode/
+.ruff_cache/

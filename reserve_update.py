@@ -63,7 +63,8 @@ def handler(event, context, db_initializer):
                     line_reserve_data[field] = datetime.strptime(line_reserve_data[field], '%Y-%m-%d %H:%M:%S')
             existing_reserve = session.query(LineReserve).filter_by(
                 id=line_reserve_data['id'],
-                reservation_id=line_reserve_data['reservation_id']
+                reservation_id=line_reserve_data['reservation_id'],
+                line_id=line_reserve_data['line_id']
             ).first()
             if existing_reserve:
                 line_reserve = LineReserve(**line_reserve_data)

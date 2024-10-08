@@ -2,6 +2,7 @@ import json
 from sqlalchemy import func
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import ProgrammingError
+from sqlalchemy import and_
 from utils.models import LineReserve
 from utils.database_initializer import DatabaseInitializer
 from utils.env_variable_loader import EnvVariableLoader
@@ -35,11 +36,30 @@ def get_reservation(event, db_initializer):
         }
 
     try:
-        if reservation_id:
-            reserves = session.query(LineReserve).filter_by(name=name, phone_number=phone_number, line_id=line_id, reservation_id=reservation_id).all()
-        else:
-            reserves = session.query(LineReserve).filter_by(name=name, phone_number=phone_number, line_id=line_id).all()
+        # if reservation_id:
+        #     reserves = session.query(LineReserve).filter_by(name=name, phone_number=phone_number, line_id=line_id, reservation_id=reservation_id).all()
+        # else:
+        #     reserves = session.query(LineReserve).filter_by(name=name, phone_number=phone_number, line_id=line_id, status!='CANCEL').all()
 
+        if reservation_id:
+            reserves = session.query(LineReserve).filter(
+                and_(
+                    LineReserve.name == name,
+                    LineReserve.phone_number == phone_number,
+                    LineReserve.line_id == line_id,
+                    LineReserve.reservation_id == reservation_id,
+                    LineReserve.status != 'CANCEL'
+                )
+            ).all()
+        else:
+            reserves = session.query(LineReserve).filter(
+                and_(
+                    LineReserve.name == name,
+                    LineReserve.phone_number == phone_number,
+                    LineReserve.line_id == line_id,
+                    LineReserve.status != 'CANCEL'
+                )
+            ).all()
 
         if not reserves:
             return None

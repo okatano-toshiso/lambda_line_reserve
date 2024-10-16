@@ -1,24 +1,23 @@
 import json
+import os
 from datetime import datetime
 from sqlalchemy.orm import sessionmaker
-
 from utils.models import LineReserve, LineUser
 from utils.env_variable_loader import EnvVariableLoader
 from utils.request_parser import RequestParser
 from utils.validator import Validator
 from utils.auth import get_access_token_from_header
-
+from reserve_functions import create_tentative_reserve, send_reservation_request
 
 def handler(event, context, db_initializer):
+    hotel_code = os.environ.get("HOTEL_CODE")
+    hns_endpoint = os.environ.get("HNS_ENDPOINT")
     config_loader = EnvVariableLoader()
     access_token = config_loader.get_access_token()
-
     engine = db_initializer.get_engine_with_db()
     Session = sessionmaker(bind=engine)
     session = Session()
-
     request_parser = RequestParser()
-
     request_body = request_parser.parse_request_body(event)
 
     try:
@@ -50,7 +49,6 @@ def handler(event, context, db_initializer):
                     line_reserve_data[field] = datetime.strptime(
                         line_reserve_data[field], "%Y-%m-%d"
                     )
-
             datetime_fields = ["created_at", "updated_at"]
             for field in datetime_fields:
                 if field in line_reserve_data and line_reserve_data[field]:
@@ -59,7 +57,6 @@ def handler(event, context, db_initializer):
                     )
             line_reserve = LineReserve(**line_reserve_data)
             session.add(line_reserve)
-
         for line_user_data in line_users_data:
             datetime_fields = ["created_at", "updated_at"]
             for field in date_fields:
@@ -79,8 +76,12 @@ def handler(event, context, db_initializer):
             if not existing_user:
                 line_user = LineUser(**line_user_data)
                 session.add(line_user)
-
         session.commit()
+
+        url = hns_endpoint
+        tentative_reserve = create_tentative_reserve(hotel_code, line_reserve_data, line_user_data)
+        send_reservation_request(url, tentative_reserve)
+
         response_message = "Reservations processed successfully"
     except Exception as err:
         print(f"Error during reservation processing: {err}")

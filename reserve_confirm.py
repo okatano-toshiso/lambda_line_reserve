@@ -3,7 +3,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import ProgrammingError
 from sqlalchemy import and_
-from utils.models import LineReserve
+from utils.models import LineReserve, LineUser
 from utils.env_variable_loader import EnvVariableLoader
 from utils.auth import get_access_token_from_header
 
@@ -45,6 +45,23 @@ def get_reservation(event, db_initializer):
                 )
                 .all()
             )
+            name_kana = (
+                session.query(LineUser.name_kana)
+                .filter(
+                    and_(
+                        LineUser.name == name,
+                        LineUser.phone_number == phone_number,
+                        LineUser.line_id == line_id
+                    )
+                )
+                .scalar()
+            )
+            if not reserves:
+                return None
+            result = [reserve.as_dict() for reserve in reserves]
+            for reserve in result:
+                reserve["name_kana"] = name_kana
+
         else:
             reserves = (
                 session.query(LineReserve)
@@ -58,12 +75,11 @@ def get_reservation(event, db_initializer):
                 )
                 .all()
             )
+            if not reserves:
+                return None
+            result = [reserve.as_dict() for reserve in reserves]
 
-        if not reserves:
-            return None
-
-        result = [reserve.as_dict() for reserve in reserves]
-
+        print("result", result)
         return {"statusCode": 200, "body": json.dumps(result, ensure_ascii=False)}
 
     except Exception as e:

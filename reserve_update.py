@@ -1,16 +1,19 @@
 import json
+import os
 from datetime import datetime
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
-
 from utils.models import LineReserve, LineUser
 from utils.env_variable_loader import EnvVariableLoader
 from utils.request_parser import RequestParser
 from utils.validator import Validator
 from utils.auth import get_access_token_from_header
+from reserve_functions import create_tentative_reserve, send_reservation_request
 
 
 def handler(event, context, db_initializer):
+    hotel_code = os.environ.get("HOTEL_CODE")
+    hns_endpoint = os.environ.get("HNS_ENDPOINT")
     config_loader = EnvVariableLoader()
     access_token = config_loader.get_access_token()
 
@@ -131,6 +134,18 @@ def handler(event, context, db_initializer):
                 ),
             }
         session.commit()
+
+        url = hns_endpoint
+        processDiv = "2"
+
+        print("line_reserve_data", line_reserve_data)
+        print("line_user_data", line_user_data)
+
+
+        tentative_reserve = create_tentative_reserve(hotel_code, line_reserve_data, line_user_data, processDiv)
+        print("tentative_reserve", tentative_reserve)
+        send_reservation_request(url, tentative_reserve)
+
         response_message = "Reservations and users updated successfully"
 
     except SQLAlchemyError as err:

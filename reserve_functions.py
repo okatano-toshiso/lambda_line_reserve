@@ -2,8 +2,7 @@ import xmlrpc.client
 import re
 from datetime import datetime, timedelta
 
-def create_tentative_reserve_info(hotel_code, line_reserve_data, line_user_data):
-    processDiv = "0"
+def create_tentative_reserve_info(hotel_code, line_reserve_data, line_user_data, processDiv):
     arrivalTime = "160000"
     departureTime = "100000"
     man = "1"
@@ -25,14 +24,15 @@ def create_tentative_reserve_info(hotel_code, line_reserve_data, line_user_data)
     centerPsnCd = "99999"
     rsvRecptPlace = "LINE"
     rsvRecptPsn = "予約JPN"
+    processDiv = processDiv
     arrivalDay = line_reserve_data["check_in"].strftime("%Y%m%d")
     stays = (line_reserve_data["check_out"] - line_reserve_data["check_in"]).days
     departureDay = line_reserve_data["check_out"].strftime("%Y%m%d")
     rsvNmKanji = line_reserve_data["name"]
-    rsvNmKana = line_user_data["name_kana"]
+    rsvNmKana = line_user_data.get("name_kana", "　")
     rsvTel = line_reserve_data["phone_number"]
     guestNmKanji1 = line_reserve_data["name"]
-    guestNmKana1 = line_user_data["name_kana"]
+    guestNmKana1 = line_user_data.get("name_kana", "　")
     guestTel1 = line_reserve_data["phone_number"]
     roomTypeCd1 = re.search(r'\((.*?)\)', line_reserve_data["room_type"]).group(1) if re.search(r'\((.*?)\)', line_reserve_data["room_type"]) else None
     people1 = line_reserve_data["count_of_person"]
@@ -150,8 +150,9 @@ def create_tentative_reserve_info(hotel_code, line_reserve_data, line_user_data)
     ]
     return tentative_reserve_info
 
-def create_tentative_reserve(hotel_code, line_reserve_data, line_user_data):
-    info_list = [create_tentative_reserve_info(hotel_code, line_reserve_data, line_user_data)]
+def create_tentative_reserve(hotel_code, line_reserve_data, line_user_data, processDiv):
+    print("line_user_data", line_user_data)
+    info_list = [create_tentative_reserve_info(hotel_code, line_reserve_data, line_user_data, processDiv)]
     return {
         "hotelCd": hotel_code,
         "trsvInfoList": info_list

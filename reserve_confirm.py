@@ -79,7 +79,6 @@ def get_reservation(event, db_initializer):
                 return None
             result = [reserve.as_dict() for reserve in reserves]
 
-        print("result", result)
         return {"statusCode": 200, "body": json.dumps(result, ensure_ascii=False)}
 
     except Exception as e:

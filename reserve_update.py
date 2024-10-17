@@ -89,8 +89,11 @@ def handler(event, context, db_initializer):
                     line_user_data[field] = datetime.strptime(
                         line_user_data[field], "%Y-%m-%d %H:%M:%S"
                     )
+            print("line_user_data", line_user_data)
             if "new_name" in line_user_data:
                 line_user_data["name"] = line_user_data["new_name"]
+            if "new_name_kana" in line_user_data:
+                line_user_data["name_kana"] = line_user_data["new_name_kana"]
             if "new_phone_number" in line_user_data:
                 line_user_data["phone_number"] = line_user_data["new_phone_number"]
             existing_user = (
@@ -106,12 +109,16 @@ def handler(event, context, db_initializer):
                 print("existing_user", existing_user)
                 if "new_name" in line_user_data:
                     existing_user.name = line_user_data["new_name"]
+                if "new_name_kana" in line_user_data:
+                    existing_user.name_kana = line_user_data["new_name_kana"]
                 if "new_phone_number" in line_user_data:
                     existing_user.phone_number = line_user_data["new_phone_number"]
                 session.merge(existing_user)
             else:
                 if isinstance(line_user_data, dict) and "new_name" in line_user_data:
                     del line_user_data["new_name"]
+                if isinstance(line_user_data, dict) and "new_name_kana" in line_user_data:
+                    del line_user_data["new_name_kana"]
                 if (
                     isinstance(line_user_data, dict)
                     and "new_phone_number" in line_user_data

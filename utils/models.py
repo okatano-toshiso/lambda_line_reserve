@@ -46,6 +46,7 @@ class LineUser(Base):
     line_id = Column(String(255))
     name = Column(String(255))
     name_kana = Column(String(255))
+    display_name = Column(String(255))
     phone_number = Column(String(20))
     age = Column(Integer)
     adult = Column(Boolean)

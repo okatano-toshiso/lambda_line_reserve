@@ -142,16 +142,12 @@ def handler(event, context, db_initializer):
             }
         session.commit()
 
-        url = hns_endpoint
-        processDiv = "2"
-
-        print("line_reserve_data", line_reserve_data)
-        print("line_user_data", line_user_data)
-
-
-        tentative_reserve = create_tentative_reserve(hotel_code, line_reserve_data, line_user_data, processDiv)
-        print("tentative_reserve", tentative_reserve)
-        send_reservation_request(url, tentative_reserve)
+        env_mode = os.getenv('ENV_MODE')
+        if env_mode and env_mode != 'TEST':
+            url = hns_endpoint
+            processDiv = "2"
+            tentative_reserve = create_tentative_reserve(hotel_code, line_reserve_data, line_user_data, processDiv)
+            send_reservation_request(url, tentative_reserve)
 
         response_message = "Reservations and users updated successfully"
 

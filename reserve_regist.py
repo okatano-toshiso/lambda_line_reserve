@@ -78,10 +78,12 @@ def handler(event, context, db_initializer):
                 session.add(line_user)
         session.commit()
 
-        url = hns_endpoint
-        processDiv = "0"
-        tentative_reserve = create_tentative_reserve(hotel_code, line_reserve_data, line_user_data, processDiv)
-        send_reservation_request(url, tentative_reserve)
+        env_mode = os.getenv('ENV_MODE')
+        if env_mode and env_mode != 'TEST':
+            url = hns_endpoint
+            processDiv = "0"
+            tentative_reserve = create_tentative_reserve(hotel_code, line_reserve_data, line_user_data, processDiv)
+            send_reservation_request(url, tentative_reserve)
 
         response_message = "Reservations processed successfully"
     except Exception as err:

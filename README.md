@@ -193,9 +193,8 @@ git checkout -b feature/your-feature
 
 | 項目 | 内容 |
 |------|------|
-| **名前** | 岡田 俊宏 (Toshihiro Okada) |
+| **名前** | 岡田 敏裕 (Toshihiro Okada) |
 | **GitHub** | [okatano-toshiso](https://github.com/okatano-toshiso) |
-| **所属** | SynapseAI |
 | **専門分野** | AIソリューション開発・AWSサーバーレス設計・自然言語処理 |
 | **連絡先** | info@synapseai.jp |
 
